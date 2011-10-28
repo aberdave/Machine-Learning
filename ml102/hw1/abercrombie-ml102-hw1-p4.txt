@@ -1,0 +1,23 @@
+# Machine Learning 102 - Unsupervised - Hacker Dojo
+# http://machinelearning102.pbworks.com/w/page/32890352/FrontPage
+#
+# Homework #1, Basic clustering
+# Dave Abercrombie, October 27s 2011
+#
+# http://machinelearning102.pbworks.com/w/file/37958115/ML102Homework02.pdf
+# http://archive.ics.uci.edu/ml/datasets/Synthetic+Control+Chart+Time+Series
+#
+# Problem 4 of 4
+#
+
+Compare the various clustering techniques:
+
+I was surprised at how well kmeans() did with these data. The data look
+very noisy, and I was surprised that it could be clustered at all.
+
+However, the kmeans models were not consistent form one run to the next.
+Perhaps it would be better to initialize with canopy? Perhaps other iteration
+arguments would help?
+
+Regarding agnes and diana, I have no idea how to interpret the output!
+I will need to ask in class on Saturday.
