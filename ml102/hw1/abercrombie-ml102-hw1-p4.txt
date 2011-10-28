@@ -2,7 +2,7 @@
 # http://machinelearning102.pbworks.com/w/page/32890352/FrontPage
 #
 # Homework #1, Basic clustering
-# Dave Abercrombie, October 27s 2011
+# Dave Abercrombie, October 27 2011
 #
 # http://machinelearning102.pbworks.com/w/file/37958115/ML102Homework02.pdf
 # http://archive.ics.uci.edu/ml/datasets/Synthetic+Control+Chart+Time+Series
