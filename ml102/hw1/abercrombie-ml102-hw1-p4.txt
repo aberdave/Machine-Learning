@@ -15,6 +15,10 @@ Compare the various clustering techniques:
 I was surprised at how well kmeans() did with these data. The data look
 very noisy, and I was surprised that it could be clustered at all.
 
+Based on (faulty) intuition, I thought that it might help to pre-process
+this time-series data into deltas. However, the deltas did not cluster at all.
+My intuition was wrong.
+
 However, the kmeans models were not consistent form one run to the next.
 Perhaps it would be better to initialize with canopy? Perhaps other iteration
 arguments would help?
