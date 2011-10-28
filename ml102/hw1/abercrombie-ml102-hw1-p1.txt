@@ -1,0 +1,364 @@
+
+R version 2.13.2 (2011-09-30)
+Copyright (C) 2011 The R Foundation for Statistical Computing
+ISBN 3-900051-07-0
+Platform: x86_64-apple-darwin9.8.0/x86_64 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> # Machine Learning 102 - Unsupervised - Hacker Dojo
+> # http://machinelearning102.pbworks.com/w/page/32890352/FrontPage
+> #
+> # Homework #1, Basic clustering
+> # Dave Abercrombie, October 24 2011
+> #
+> # http://machinelearning102.pbworks.com/w/file/37958115/ML102Homework02.pdf
+> # http://archive.ics.uci.edu/ml/datasets/Synthetic+Control+Chart+Time+Series
+> #
+> # Problem 1 of 4
+> #
+> 
+> #####################################################################
+> # Step 1. Import data
+> 
+> setwd("/Users/dabercrombie/Documents/R/ml102/ml102-hw1")
+> 
+> control.chart.raw.df <- read.table(
++   file="synthetic_control.data",
++   header=FALSE,
++ )
+> 
+> # Interactive look at structure
+> str(control.chart.raw.df)
+'data.frame':	600 obs. of  60 variables:
+ $ V1 : num  28.8 24.9 31.4 25.8 27.2 ...
+ $ V2 : num  34.5 25.7 30.6 30.5 29.2 ...
+ $ V3 : num  31.3 27.6 26.4 35.4 33.7 ...
+ $ V4 : num  31.3 32.8 24.3 25.6 25.6 ...
+ $ V5 : num  28.9 27.9 27.9 28 24.7 ...
+ $ V6 : num  33.8 31.6 28.5 25.3 28.9 ...
+ $ V7 : num  25.4 31.5 25 28.1 35.8 ...
+ $ V8 : num  27.8 35.5 32.4 29.4 34.9 ...
+ $ V9 : num  35.2 28 25.2 31.5 24.6 ...
+ $ V10: num  27.1 31.7 27.3 27.3 34.2 ...
+ $ V11: num  32.9 27.5 31.8 29 28 ...
+ $ V12: num  29.2 31.2 27.3 29 25.3 ...
+ $ V13: num  36 27.5 28.3 30 35.4 ...
+ $ V14: num  32.3 31.4 26.6 30.3 34.9 ...
+ $ V15: num  34.5 27.8 24 30.4 25.1 ...
+ $ V16: num  32.9 24.5 35.1 24.3 29.5 ...
+ $ V17: num  34.1 27.6 31.6 24.3 33.2 ...
+ $ V18: num  26.5 35.6 32.6 35.1 31.1 ...
+ $ V19: num  27.7 35.4 31 25.4 31.4 ...
+ $ V20: num  26.4 31.4 34.1 32.1 26.5 ...
+ $ V21: num  25.8 30.7 26.9 33.3 28.6 ...
+ $ V22: num  29.3 24.1 31.5 25 31.7 ...
+ $ V23: num  30.7 35.1 35 35.3 35.9 ...
+ $ V24: num  29.5 30.5 32.4 31.6 33 ...
+ $ V25: num  33 32 24.3 29.3 24.6 ...
+ $ V26: num  25 33.7 30.2 34.2 33.2 ...
+ $ V27: num  28.9 25.6 31.2 26.5 27.4 ...
+ $ V28: num  24.3 30.5 26.7 32.2 32.6 ...
+ $ V29: num  26.1 33.6 31.5 25.5 35.9 ...
+ $ V30: num  34.9 25.1 28.9 24.8 28 ...
+ $ V31: num  25 34.1 27.3 27.6 33.1 ...
+ $ V32: num  26.6 32.6 24.2 28.4 33.4 ...
+ $ V33: num  35.7 28.3 27 32.4 26.9 ...
+ $ V34: num  28.4 26.1 25.3 27 30.2 ...
+ $ V35: num  29.1 26.9 31.6 35.9 29.7 ...
+ $ V36: num  28.2 31.5 24.7 35.1 30.9 ...
+ $ V37: num  26.2 33.1 27.5 24.4 24.5 ...
+ $ V38: num  33.3 24.1 24.2 27.6 34 ...
+ $ V39: num  31 28.5 26.8 27.8 33.3 ...
+ $ V40: num  27 25.8 35.1 29.9 33.2 ...
+ $ V41: num  35.5 36 32.6 32.4 31.3 ...
+ $ V42: num  26.2 26.5 31.1 26.9 27.9 ...
+ $ V43: num  29 24.9 26.4 31.3 35.1 ...
+ $ V44: num  32 26 28.1 29.4 35.1 ...
+ $ V45: num  31.1 32.8 31.4 34.3 33.8 ...
+ $ V46: num  34.3 28.5 27.3 24.7 25.9 ...
+ $ V47: num  28.1 26.3 29.6 35.8 29.1 ...
+ $ V48: num  28.9 30.6 36 31.9 24.3 ...
+ $ V49: num  35.5 29 34.1 34.2 32.3 ...
+ $ V50: num  29.7 29.4 27.2 31.2 34.9 ...
+ $ V51: num  31.4 32.6 33.6 34.6 27.7 ...
+ $ V52: num  24.6 31 26.6 28.7 28 ...
+ $ V53: num  33.7 26.6 25.5 28.3 35.7 ...
+ $ V54: num  25 28.4 32.5 31.6 27.6 ...
+ $ V55: num  34.9 33.7 25.6 34.6 35.3 ...
+ $ V56: num  35 26.4 30 32.5 30 ...
+ $ V57: num  32.5 28.5 31.4 31 34.2 ...
+ $ V58: num  33.4 34.2 33.9 24.9 33.1 ...
+ $ V59: num  25.5 32.1 29.5 27.4 31.1 ...
+ $ V60: num  25.9 26.7 29.3 25.3 31 ...
+> tail(control.chart.raw.df)
+         V1      V2      V3      V4      V5      V6      V7      V8      V9
+595 31.0216 28.1397 26.7303 26.5702 29.5608 26.9657 28.0493 25.6731 33.7207
+596 29.6254 25.5034 31.5978 31.4663 33.5488 28.2935 28.9244 30.6922 25.3301
+597 27.4144 25.3973 26.4600 31.9782 26.1251 27.4629 30.4888 34.9292 27.5580
+598 35.8990 26.6719 34.1911 35.8270 25.1009 24.8564 25.8141 30.6301 34.2124
+599 24.5383 24.2802 28.2814 27.1316 26.6623 32.1100 32.8100 30.4829 35.8586
+600 34.3354 30.9375 31.9529 31.1457 24.5189 24.3933 27.6961 29.8744 26.7666
+        V10     V11     V12     V13     V14     V15     V16     V17     V18
+595 26.2746 30.4102 31.1009 24.0187 35.6589 25.2526 25.9319 28.6178 32.4225
+596 26.8728 31.8170 24.2666 31.3870 31.6536 34.8491 29.2509 28.2719 35.7808
+597 30.6863 27.5106 32.2694 32.8335 27.1294 24.9908 32.6095 25.3870 32.6741
+598 32.5874 31.0315 34.3038 24.5549 35.8704 30.6834 29.0577 28.6365 29.8553
+599 25.3866 31.3007 25.4285 26.8658 30.8516 24.4781 25.6653 25.2959 30.2629
+600 33.0887 31.3705 26.2327 26.3833 35.6614 32.6631 27.6850 29.2769 31.7612
+        V19     V20     V21     V22     V23      V24     V25     V26     V27
+595 33.6656 33.7453 35.1183 29.1635 25.4770 31.94700 35.4907 30.7300 25.8203
+596 31.4722 32.3223 28.5084 29.8671 31.4740 29.15250 24.1245 25.3763 15.9175
+597 34.6068 33.5194 29.0122 28.7052 32.1156 29.12090 26.4240 33.4519 33.6234
+598 32.0370 32.9785 26.1183 26.1073 25.0956 22.70280 17.6979 16.2812 18.1860
+599 29.6570 25.2948 25.0223 35.2641 26.1089  9.59991 12.6750 16.5749 19.7601
+600 34.6501 24.9401 33.4339 26.8485 28.7144 26.58120 34.8249 34.0258  8.8228
+        V28     V29      V30     V31     V32     V33      V34      V35      V36
+595 24.6514 25.5284 31.34290 29.0048 31.8251 26.8908 28.19400 31.42890 16.93480
+596 22.2307 18.2640 24.58200 18.6793 26.3700 24.1538 25.90220 24.79980 17.27290
+597 29.4565 35.0254 26.60690 34.4423 34.8473 28.8965 34.43860 32.01050 34.81570
+598 24.0163 24.5528 21.45170 15.8358 21.3107 20.8788 22.55920 21.69400 25.85610
+599 13.3489 18.1374  7.99333 16.7511 16.3406 15.3491  9.47579  9.94326 16.60900
+600 12.6338 12.6937  6.27907 13.6444 16.6505 18.0782  7.97526  9.27375  9.20801
+         V37      V38      V39     V40      V41      V42     V43      V44
+595  8.06973 16.60390 14.74280 10.3421  8.15492 10.39530 17.6887 16.79050
+596 25.46300 22.29610 26.87570 24.5111 25.70240 21.35560 25.9675 15.50650
+597 27.77280 11.54930 20.21900 19.6781 14.71510 14.38350 15.5557  9.57331
+598 20.53250 21.54200 25.76580 26.0184 20.82040 24.95860 18.9593 23.34580
+599 12.33130  8.64478 19.45680 10.8356 10.34900  9.72550 14.5746 18.95890
+600 12.87910 12.72930  6.97605 17.8322 13.32970  6.32571 12.1314 11.84210
+        V45     V46      V47     V48     V49     V50      V51      V52      V53
+595 14.1377 15.7608  6.78740 13.0624 16.6601 15.0205  9.89077  9.21618 11.54990
+596 24.2809 25.0252 21.75000 16.8370 15.0791 17.3331 26.74680 18.87950 21.33210
+597 10.6357 16.6386 17.23610 19.6428 18.3168 15.3225 19.10630 11.45460 16.88800
+598 16.0682 22.8361 21.93930 25.7221 19.6707 26.2986 21.87870 16.00210 15.28790
+599 15.8224 17.3644 11.91450 13.7620 12.4022 19.6283 19.64410 11.52380 15.41850
+600 16.7155 10.4253  9.44524 14.3998 15.6964 11.0276 10.60750 15.18970  9.07618
+         V54      V55      V56     V57     V58      V59     V60
+595  8.87687 18.22040  9.47691 10.3424 16.4302 11.89760 15.3660
+596 23.69150 22.30970 19.13610 15.2851 22.5278 20.65720 24.1289
+597 18.26910 11.58310 14.11760 20.2289 11.1314  9.98019 10.7201
+598 16.94590 17.53380 16.84640 16.5460 15.9268 18.08430 17.4747
+599 12.66990 13.11640  8.23496 12.0419 19.3096 12.99850 17.4599
+600 17.90850  9.84551 15.01300 13.9132 11.7426 11.69890 10.1521
+> dim(control.chart.raw.df)
+[1] 600  60
+> 
+> # Interactive look at summary stats.
+> # Summary stats are all about the same; no way to distiguish
+> # But this is viewing the columns as attributes, which they are not really.
+> # It might almost make more sense to look at summary stats per row
+> #
+> summary(control.chart.raw.df)
+       V1              V2              V3              V4       
+ Min.   :24.00   Min.   :23.51   Min.   :23.29   Min.   :23.09  
+ 1st Qu.:27.09   1st Qu.:27.53   1st Qu.:27.81   1st Qu.:28.03  
+ Median :30.09   Median :30.83   Median :31.09   Median :31.29  
+ Mean   :30.02   Mean   :30.91   Mean   :31.90   Mean   :32.23  
+ 3rd Qu.:33.07   3rd Qu.:33.92   3rd Qu.:34.77   3rd Qu.:35.07  
+ Max.   :36.03   Max.   :43.62   Max.   :48.30   Max.   :49.95  
+       V5              V6              V7              V8       
+ Min.   :22.50   Min.   :22.12   Min.   :16.29   Min.   :13.00  
+ 1st Qu.:27.45   1st Qu.:27.74   1st Qu.:27.02   1st Qu.:25.90  
+ Median :31.25   Median :31.29   Median :30.40   Median :29.35  
+ Mean   :31.76   Mean   :31.19   Mean   :30.26   Mean   :29.15  
+ 3rd Qu.:34.94   3rd Qu.:34.08   3rd Qu.:33.29   3rd Qu.:32.80  
+ Max.   :49.52   Max.   :46.60   Max.   :42.49   Max.   :38.48  
+       V9             V10              V11             V12        
+ Min.   :11.79   Min.   : 9.382   Min.   :12.16   Min.   : 9.808  
+ 1st Qu.:24.94   1st Qu.:25.053   1st Qu.:25.26   1st Qu.:25.792  
+ Median :28.75   Median :29.013   Median :28.95   Median :29.391  
+ Mean   :28.46   Mean   :28.335   Mean   :28.15   Mean   :29.000  
+ 3rd Qu.:32.64   3rd Qu.:32.679   3rd Qu.:32.01   3rd Qu.:32.909  
+ Max.   :39.53   Max.   :40.144   Max.   :40.07   Max.   :40.770  
+      V13             V14             V15             V16       
+ Min.   :12.89   Min.   :16.29   Min.   :18.12   Min.   :17.73  
+ 1st Qu.:26.47   1st Qu.:27.02   1st Qu.:26.83   1st Qu.:26.93  
+ Median :29.82   Median :30.50   Median :30.44   Median :31.11  
+ Mean   :29.87   Mean   :30.61   Mean   :30.94   Mean   :31.19  
+ 3rd Qu.:33.56   3rd Qu.:33.71   3rd Qu.:34.53   3rd Qu.:34.82  
+ Max.   :47.24   Max.   :50.13   Max.   :50.11   Max.   :48.76  
+      V17             V18             V19             V20       
+ Min.   :16.49   Min.   :15.09   Min.   :11.80   Min.   :11.54  
+ 1st Qu.:26.87   1st Qu.:26.07   1st Qu.:25.94   1st Qu.:25.68  
+ Median :30.71   Median :30.69   Median :30.30   Median :29.79  
+ Mean   :31.09   Mean   :30.72   Mean   :30.33   Mean   :29.91  
+ 3rd Qu.:34.99   3rd Qu.:34.93   3rd Qu.:34.17   3rd Qu.:34.20  
+ Max.   :49.23   Max.   :49.45   Max.   :49.56   Max.   :49.16  
+      V21             V22              V23              V24       
+ Min.   :11.40   Min.   : 9.397   Min.   : 8.878   Min.   : 9.60  
+ 1st Qu.:25.36   1st Qu.:24.629   1st Qu.:24.878   1st Qu.:24.23  
+ Median :29.85   Median :28.844   Median :29.166   Median :30.28  
+ Mean   :29.69   Mean   :29.169   Mean   :29.279   Mean   :29.70  
+ 3rd Qu.:34.08   3rd Qu.:33.903   3rd Qu.:34.270   3rd Qu.:34.90  
+ Max.   :53.22   Max.   :53.848   Max.   :51.353   Max.   :52.90  
+      V25              V26              V27              V28        
+ Min.   : 7.906   Min.   : 6.083   Min.   : 6.624   Min.   : 9.958  
+ 1st Qu.:24.345   1st Qu.:24.305   1st Qu.:24.563   1st Qu.:24.472  
+ Median :29.443   Median :29.810   Median :30.271   Median :30.579  
+ Mean   :29.754   Mean   :29.990   Mean   :30.460   Mean   :30.466  
+ 3rd Qu.:34.907   3rd Qu.:35.914   3rd Qu.:36.106   3rd Qu.:36.013  
+ Max.   :55.492   Max.   :54.515   Max.   :55.578   Max.   :52.242  
+      V29              V30              V31              V32        
+ Min.   : 9.097   Min.   : 4.454   Min.   : 4.463   Min.   : 5.002  
+ 1st Qu.:24.290   1st Qu.:24.141   1st Qu.:22.788   1st Qu.:22.716  
+ Median :30.461   Median :30.447   Median :30.049   Median :29.925  
+ Mean   :30.540   Mean   :30.511   Mean   :30.065   Mean   :30.229  
+ 3rd Qu.:37.107   3rd Qu.:37.346   3rd Qu.:37.555   3rd Qu.:37.918  
+ Max.   :54.775   Max.   :53.424   Max.   :52.561   Max.   :55.658  
+      V33              V34              V35              V36        
+ Min.   : 5.531   Min.   : 5.533   Min.   : 5.968   Min.   : 7.317  
+ 1st Qu.:22.028   1st Qu.:21.755   1st Qu.:20.273   1st Qu.:20.283  
+ Median :29.992   Median :30.387   Median :30.091   Median :30.155  
+ Mean   :30.179   Mean   :30.226   Mean   :29.943   Mean   :30.112  
+ 3rd Qu.:38.298   3rd Qu.:39.267   3rd Qu.:38.928   3rd Qu.:40.086  
+ Max.   :55.459   Max.   :54.215   Max.   :54.861   Max.   :54.589  
+      V37             V38              V39              V40        
+ Min.   : 4.70   Min.   : 5.263   Min.   : 6.259   Min.   : 6.128  
+ 1st Qu.:19.25   1st Qu.:19.287   1st Qu.:18.631   1st Qu.:18.859  
+ Median :29.59   Median :29.775   Median :28.801   Median :28.136  
+ Mean   :29.73   Mean   :29.749   Mean   :29.352   Mean   :29.623  
+ 3rd Qu.:40.32   3rd Qu.:40.136   3rd Qu.:40.824   3rd Qu.:41.059  
+ Max.   :53.93   Max.   :53.968   Max.   :54.825   Max.   :55.148  
+      V41              V42              V43             V44        
+ Min.   : 5.974   Min.   : 3.635   Min.   : 4.75   Min.   : 2.912  
+ 1st Qu.:18.793   1st Qu.:19.248   1st Qu.:18.60   1st Qu.:18.674  
+ Median :28.604   Median :29.952   Median :30.03   Median :29.606  
+ Mean   :29.728   Mean   :30.006   Mean   :30.28   Mean   :30.254  
+ 3rd Qu.:40.702   3rd Qu.:41.236   3rd Qu.:42.18   3rd Qu.:42.060  
+ Max.   :53.529   Max.   :55.934   Max.   :55.48   Max.   :55.992  
+      V45              V46              V47              V48        
+ Min.   : 3.566   Min.   : 1.798   Min.   : 1.293   Min.   : 1.347  
+ 1st Qu.:18.357   1st Qu.:18.037   1st Qu.:17.412   1st Qu.:17.253  
+ Median :30.157   Median :31.315   Median :31.841   Median :30.511  
+ Mean   :30.126   Mean   :30.561   Mean   :30.446   Mean   :30.117  
+ 3rd Qu.:41.677   3rd Qu.:43.193   3rd Qu.:42.423   3rd Qu.:42.284  
+ Max.   :55.838   Max.   :57.682   Max.   :58.600   Max.   :57.669  
+      V49               V50               V51               V52        
+ Min.   : 0.6413   Min.   : 0.2809   Min.   : 0.5756   Min.   :-1.116  
+ 1st Qu.:17.9990   1st Qu.:18.1437   1st Qu.:17.3252   1st Qu.:17.875  
+ Median :30.2726   Median :29.2232   Median :30.2648   Median :29.062  
+ Mean   :30.1501   Mean   :29.8835   Mean   :29.7459   Mean   :29.583  
+ 3rd Qu.:42.7937   3rd Qu.:42.8826   3rd Qu.:42.5615   3rd Qu.:42.279  
+ Max.   :57.2922   Max.   :58.2838   Max.   :59.0165   Max.   :59.013  
+      V53                V54              V55              V56       
+ Min.   : 0.07817   Min.   :-1.948   Min.   :-1.399   Min.   :-2.05  
+ 1st Qu.:17.14975   1st Qu.:16.865   1st Qu.:17.572   1st Qu.:17.10  
+ Median :29.09945   Median :28.263   Median :30.535   Median :30.21  
+ Mean   :29.61116   Mean   :29.564   Mean   :29.959   Mean   :30.25  
+ 3rd Qu.:41.89048   3rd Qu.:42.687   3rd Qu.:43.077   3rd Qu.:43.24  
+ Max.   :60.00890   Max.   :61.019   Max.   :61.116   Max.   :62.18  
+      V57              V58              V59              V60        
+ Min.   :-3.789   Min.   :-1.565   Min.   :-1.593   Min.   :-5.115  
+ 1st Qu.:17.159   1st Qu.:17.396   1st Qu.:16.639   1st Qu.:17.634  
+ Median :30.511   Median :30.214   Median :30.462   Median :30.870  
+ Mean   :30.259   Mean   :30.037   Mean   :30.009   Mean   :30.161  
+ 3rd Qu.:44.041   3rd Qu.:43.215   3rd Qu.:43.863   3rd Qu.:43.606  
+ Max.   :62.853   Max.   :60.539   Max.   :63.828   Max.   :61.707  
+> 
+> #####################################################################
+> # Step 2. Do k-means
+> 
+> control.chart.raw.km <- kmeans(
++   x=control.chart.raw.df,
++   centers=6,
++   iter.max=20,
++   nstart=10
++ )
+> 
+> # Interactive look at retirn value structure
+> #
+> summary(control.chart.raw.km)
+             Length Class  Mode   
+cluster      600    -none- numeric
+centers      360    -none- numeric
+totss          1    -none- numeric
+withinss       6    -none- numeric
+tot.withinss   1    -none- numeric
+betweenss      1    -none- numeric
+size           6    -none- numeric
+> 
+> #####################################################################
+> # Step 3. Exract and prepare cluster assignments for review
+> 
+> # Intercative look at structure of cluster element
+> # It is a vector of 600 integers
+> #
+> str(control.chart.raw.km$cluster)
+ int [1:600] 4 4 4 4 4 4 4 4 4 4 ...
+> 
+> # We know that the data had six types of control charts, with 100 examples 
+> # of each, in contiguous chunks of rows
+> # See http://archive.ics.uci.edu/ml/databases/synthetic_control/synthetic_control.data.html
+> # So lets create some factors and attach them to cluster assingment as a data frame
+> #
+> control.chart.type.factors <- as.factor(
++   c(
++     rep('1. Normal',100),
++     rep('2. Cyclicl',100),
++     rep('3. Increasing trend',100),
++     rep('4. Decreasing trend',100),
++     rep('5. Upward shift',100),
++     rep('6. Downward shift',100)
++   )
++ )
+> str(control.chart.type.factors)
+ Factor w/ 6 levels "1. Normal","2. Cyclicl",..: 1 1 1 1 1 1 1 1 1 1 ...
+> 
+> control.chart.raw.clusters.df <- data.frame(
++   actual.type=control.chart.type.factors,
++   modeled.cluster=control.chart.raw.km$cluster
++ )
+> str(control.chart.raw.clusters.df)
+'data.frame':	600 obs. of  2 variables:
+ $ actual.type    : Factor w/ 6 levels "1. Normal","2. Cyclicl",..: 1 1 1 1 1 1 1 1 1 1 ...
+ $ modeled.cluster: int  4 4 4 4 4 4 4 4 4 4 ...
+> 
+> 
+> #####################################################################
+> # Step 4. Use a lattice of histograms to review
+> 
+> # Lattice graphics includes methods to put many histograms on 
+> # the same chart. It is installed by default, but not loaded
+> # by default.
+> #
+> require('lattice')
+Loading required package: lattice
+> 
+> 
+> # The first argument is a "model formula" 
+> # in "Wilkinon-Rogers (1973)" notation (see Venables-Ripley chap. 6)
+> # Think of it as saying that the modeled.cluster values depend on the
+> # control.chart.raw.clusters.
+> # The third argument. layout, and is poorly documented. I learned this
+> # trick from "R in a Nutshell" Figure 15-12.
+> #
+> histogram(
++   ~modeled.cluster|actual.type, 
++   data=control.chart.raw.clusters.df,
++   layout=c(1,6)
++ )
+> 
+> # Reviewing the chart, I am amazed at how well the clustering did work.
+> # The normal charts are all in a cluste of their own. The clyclic charts 
+> # are off by themselves, but split into two sub groups. Cyclics are clearly
+> # distinguished from decreasing trend, but confused with upward shift.
+> # Interesting, far from arbitrary, but not compelling.
+> #
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  0.695   0.026   0.844 
