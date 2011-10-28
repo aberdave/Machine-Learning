@@ -13,7 +13,7 @@
 #####################################################################
 # Step 1. Import data
 
-setwd("/Users/dabercrombie/Documents/R/ml102/ml102-hw1")
+setwd("/Users/dabercrombie/Documents/aberdave-repos/Machine-Learning/ml102/hw1")
 
 control.chart.raw.df <- read.table(
   file="synthetic_control.data",
