@@ -7,13 +7,13 @@
 # http://machinelearning102.pbworks.com/w/file/37958115/ML102Homework02.pdf
 # http://archive.ics.uci.edu/ml/datasets/Synthetic+Control+Chart+Time+Series
 #
-# Problem 1 of 4
+# Problem 2 of 4
 #
 
 #####################################################################
 # Step 1. Import data
 
-setwd("/Users/dabercrombie/Documents/R/ml102/ml102-hw1")
+setwd("/Users/dabercrombie/Documents/aberdave-repos/Machine-Learning/ml102/hw1")
 
 control.chart.raw.df <- read.table(
   file="synthetic_control.data",
@@ -22,26 +22,15 @@ control.chart.raw.df <- read.table(
 
 # Interactive look at structure
 str(control.chart.raw.df)
-tail(control.chart.raw.df)
+# tail(control.chart.raw.df)
 dim(control.chart.raw.df)
 
-# Interactive look at summary stats.
-# Summary stats are all about the same; no way to distiguish
-# But this is viewing the columns as attributes, which they are not really.
-# It might almost make more sense to look at summary stats per row
-#
-summary(control.chart.raw.df)
-
-# But the above are for "vertical" slices of the time-series data.
-# I wonder what summary stats lool like per row.
-
-apply( control.chart.raw.df, 1, mean)
-apply( control.chart.raw.df, 1, sd)
-#
-# Result: not too dissimilar, but certainly not identical
 
 #####################################################################
-# Step 2. Do k-means on raw dataset
+# Step 2. Do diana on raw dataset
+
+require(cluster)
+
 
 control.chart.raw.km <- kmeans(
   x=control.chart.raw.df,
@@ -50,9 +39,28 @@ control.chart.raw.km <- kmeans(
   nstart=10
 )
 
+# Use diss=FALSE since these observations
+# do not standardize, yet (that comes later)
+control.chart.raw.diana <- diana(
+  x=control.chart.raw.df, 
+  diss=FALSE,
+  metric = "euclidean"
+)
+
+str(control.chart.raw.diana)
 # Interactive look at return value structure
 #
-summary(control.chart.raw.km)
+summary(control.chart.raw.diana)
+
+plot(
+  x=control.chart.raw.diana,
+  ask=FALSE,
+  which.plots=2
+)
+
+
+
+
 
 #####################################################################
 # Step 3. Exract and prepare cluster assignments for review
