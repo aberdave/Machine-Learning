@@ -7,7 +7,7 @@
 # http://machinelearning102.pbworks.com/w/file/37958115/ML102Homework02.pdf
 # http://archive.ics.uci.edu/ml/datasets/Synthetic+Control+Chart+Time+Series
 #
-# Problem 2 of 4
+# Problem 3 of 4
 #
 
 #####################################################################
@@ -31,24 +31,24 @@ dim(control.chart.raw.df)
 
 
 #####################################################################
-# Step 2. Do diana on raw dataset
+# Step 2. Do agnes on raw dataset
 
 require(cluster)
 
 
 # do not standardize, yet (that comes later)
-control.chart.raw.diana <- diana(
+control.chart.raw.agnes <- agnes(
   x=control.chart.raw.df, 
   stand=FALSE
 )
 
-str(control.chart.raw.diana)
+str(control.chart.raw.agnes)
 # Interactive look at return value structure
 #
-summary(control.chart.raw.diana)
+summary(control.chart.raw.agnes)
 
 plot(
-  x=control.chart.raw.diana,
+  x=control.chart.raw.agnes,
   ask=FALSE,
   which.plots=2
 )
@@ -58,18 +58,18 @@ plot(
 
 
 #####################################################################
-# Step 3. Do diana on scaled dataset
+# Step 3. Do agnes on scaled dataset
 
 # now we standardize
-control.chart.stand.diana <- diana(
+control.chart.stand.agnes <- agnes(
   x=control.chart.raw.df, 
   stand=TRUE
 )
 
-summary(control.chart.stand.diana)
+summary(control.chart.stand.agnes)
 
 plot(
-  x=control.chart.stand.diana,
+  x=control.chart.stand.agnes,
   ask=FALSE,
   which.plots=2
 )
