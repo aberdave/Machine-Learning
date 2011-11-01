@@ -1,0 +1,12 @@
+HW2
+
+In class, we constructed a clustering problem by generating 
+gaussian clusters of 100 points around each of 25 centers - 
+centers with coordinates (i,j) i = 1 to 5 and j = 1 to 5.  
+
+See what number of clusters looks like the best clustering 
+of this system for for each of three situations 
+sd = 0.1, sd = 0.2 and sd = 0.5.  
+
+Use both the inflection point technique and the 
+AIC (Akaike information criterion) to make your determination.
