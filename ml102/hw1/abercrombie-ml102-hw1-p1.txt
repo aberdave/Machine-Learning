@@ -466,7 +466,7 @@ size           6    -none- numeric
 > # It is a vector of 600 integers
 > #
 > str(control.chart.raw.km$cluster)
- int [1:600] 5 5 5 5 5 5 5 5 5 5 ...
+ int [1:600] 2 2 2 2 2 2 2 2 2 2 ...
 > 
 > # We know that the data had six types of control charts, with 100 examples 
 > # of each, in contiguous chunks of rows
@@ -476,7 +476,7 @@ size           6    -none- numeric
 > control.chart.type.factors <- as.factor(
 +   c(
 +     rep('1. Normal',100),
-+     rep('2. Cyclicl',100),
++     rep('2. Cyclic',100),
 +     rep('3. Increasing trend',100),
 +     rep('4. Decreasing trend',100),
 +     rep('5. Upward shift',100),
@@ -484,16 +484,16 @@ size           6    -none- numeric
 +   )
 + )
 > str(control.chart.type.factors)
- Factor w/ 6 levels "1. Normal","2. Cyclicl",..: 1 1 1 1 1 1 1 1 1 1 ...
+ Factor w/ 6 levels "1. Normal","2. Cyclic",..: 1 1 1 1 1 1 1 1 1 1 ...
 > 
-> control.chart.raw.clusters.df <- data.frame(
+> control.chart.raw.km.clusters.df <- data.frame(
 +   actual.type=control.chart.type.factors,
 +   modeled.cluster=control.chart.raw.km$cluster
 + )
-> str(control.chart.raw.clusters.df)
+> str(control.chart.raw.km.clusters.df)
 'data.frame':	600 obs. of  2 variables:
- $ actual.type    : Factor w/ 6 levels "1. Normal","2. Cyclicl",..: 1 1 1 1 1 1 1 1 1 1 ...
- $ modeled.cluster: int  5 5 5 5 5 5 5 5 5 5 ...
+ $ actual.type    : Factor w/ 6 levels "1. Normal","2. Cyclic",..: 1 1 1 1 1 1 1 1 1 1 ...
+ $ modeled.cluster: int  2 2 2 2 2 2 2 2 2 2 ...
 > 
 > 
 > #####################################################################
@@ -515,8 +515,9 @@ Loading required package: lattice
 > # trick from "R in a Nutshell" Figure 15-12.
 > #
 > histogram(
++   main="K-means clusters on raw data",
 +   ~modeled.cluster|actual.type, 
-+   data=control.chart.raw.clusters.df,
++   data=control.chart.raw.km.clusters.df,
 +   layout=c(1,6)
 + )
 > 
@@ -603,8 +604,8 @@ size           6    -none- numeric
 + )
 > str(control.chart.deltas.clusters.df)
 'data.frame':	600 obs. of  2 variables:
- $ actual.type    : Factor w/ 6 levels "1. Normal","2. Cyclicl",..: 1 1 1 1 1 1 1 1 1 1 ...
- $ modeled.cluster: int  6 4 6 6 4 6 4 6 4 4 ...
+ $ actual.type    : Factor w/ 6 levels "1. Normal","2. Cyclic",..: 1 1 1 1 1 1 1 1 1 1 ...
+ $ modeled.cluster: int  6 1 5 5 6 5 6 5 6 6 ...
 > 
 > 
 > # Lattice graphics includes methods to put many histograms on 
@@ -622,6 +623,7 @@ size           6    -none- numeric
 > # trick from "R in a Nutshell" Figure 15-12.
 > #
 > histogram(
++   main="K-means clusters on deltas",
 +   ~modeled.cluster|actual.type, 
 +   data=control.chart.deltas.clusters.df,
 +   layout=c(1,6)
@@ -633,4 +635,4 @@ size           6    -none- numeric
 > 
 > proc.time()
    user  system elapsed 
-  1.096   0.027   1.117 
+  1.116   0.026   1.138 

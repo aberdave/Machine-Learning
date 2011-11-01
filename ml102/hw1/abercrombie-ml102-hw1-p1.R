@@ -70,7 +70,7 @@ str(control.chart.raw.km$cluster)
 control.chart.type.factors <- as.factor(
   c(
     rep('1. Normal',100),
-    rep('2. Cyclicl',100),
+    rep('2. Cyclic',100),
     rep('3. Increasing trend',100),
     rep('4. Decreasing trend',100),
     rep('5. Upward shift',100),
@@ -79,11 +79,11 @@ control.chart.type.factors <- as.factor(
 )
 str(control.chart.type.factors)
 
-control.chart.raw.clusters.df <- data.frame(
+control.chart.raw.km.clusters.df <- data.frame(
   actual.type=control.chart.type.factors,
   modeled.cluster=control.chart.raw.km$cluster
 )
-str(control.chart.raw.clusters.df)
+str(control.chart.raw.km.clusters.df)
 
 
 #####################################################################
@@ -104,8 +104,9 @@ require('lattice')
 # trick from "R in a Nutshell" Figure 15-12.
 #
 histogram(
+  main="K-means clusters on raw data",
   ~modeled.cluster|actual.type, 
-  data=control.chart.raw.clusters.df,
+  data=control.chart.raw.km.clusters.df,
   layout=c(1,6)
 )
 
@@ -199,6 +200,7 @@ require('lattice')
 # trick from "R in a Nutshell" Figure 15-12.
 #
 histogram(
+  main="K-means clusters on deltas",
   ~modeled.cluster|actual.type, 
   data=control.chart.deltas.clusters.df,
   layout=c(1,6)

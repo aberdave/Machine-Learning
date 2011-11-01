@@ -2,7 +2,7 @@
 # http://machinelearning102.pbworks.com/w/page/32890352/FrontPage
 #
 # Homework #1, Basic clustering
-# Dave Abercrombie, October 27 2011
+# Dave Abercrombie, October 31 2011
 #
 # http://machinelearning102.pbworks.com/w/file/37958115/ML102Homework02.pdf
 # http://archive.ics.uci.edu/ml/datasets/Synthetic+Control+Chart+Time+Series
@@ -15,13 +15,36 @@ Compare the various clustering techniques:
 I was surprised at how well kmeans() did with these data. The data look
 very noisy, and I was surprised that it could be clustered at all.
 
-Based on (faulty) intuition, I thought that it might help to pre-process
-this time-series data into deltas. However, the deltas did not cluster at all.
-My intuition was wrong.
 
-However, the kmeans models were not consistent form one run to the next.
-Perhaps it would be better to initialize with canopy? Perhaps other iteration
-arguments would help?
+K-means clustering performed better than I expected on the raw data. 
+However, it was unstable: each subsequent run would generate different 
+cluster assignments, sometimes wildly different. For example, the chart 
+labeled "K-means clusters on raw data" in ...p1.pdf shows "1. Normal" 
+data mostly in its own cluster. 
 
-Regarding agnes and diana, I have no idea how to interpret the output!
-I will need to ask in class on Saturday.
+Since the data were from a time series, and since their summary 
+statistics were not very dissimilar (slicing either horizontal 
+or vertical),  I thought it would be interesting to look at deltas 
+rather than normalization. This destroyed the ability of k-means 
+to find clusters, as shown by the chart labeled "K-means clusters on raw data" in ...p1.pdf.
+
+I was initially puzled about how to review clustering asignments of
+Diana and Agnes. Thanks to student Jason, I learned to cast a diana 
+or agnes object to an hclust with as.hclust(). Then thanks to the 
+"R Cookbook", I learned to use cutree() to extract the clusters.
+
+Diana divisive clustering did a pretty decent job on the raw data. 
+As shown in the lattice histogram labeled "Diana clusters on raw data" in ...p2.pdf, 
+the "1. Normal" observations were clustered well, "2. cyclic" data 
+were in their own clusters, but in three rather than one. 
+The "4. Decreasing trend" and "6. Downward shift" data were clustered 
+together, which is not so bad. The same can be said about "3. increasing trend" 
+and "5. Upward shift." Interestingly, clustering was worse after standardization, 
+with sets #3 and #5 now mixed in with #1.
+
+Agnes agglomerative clustering worked about as well as Diana, but perhaps 
+slightly worse: some "cyclic" data were clustered along with "normal," 
+as shown by the "agnes clusters on raw data" histogram in ...p3.pdf. 
+In this case (unlike with Diana), standardization slightly improved the clustering.
+
+
