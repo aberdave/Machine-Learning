@@ -1,0 +1,118 @@
+
+R version 2.13.2 (2011-09-30)
+Copyright (C) 2011 The R Foundation for Statistical Computing
+ISBN 3-900051-07-0
+Platform: x86_64-apple-darwin9.8.0/x86_64 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> # Machine Learning 102 - Unsupervised - Hacker Dojo
+> # http://machinelearning102.pbworks.com/w/page/32890352/FrontPage
+> #
+> # Homework #2, Basic clustering 2
+> # Dave Abercrombie, Noveember 1 2011
+> #
+> # http://machinelearning102.pbworks.com/w/file/47470778/Homework2.txt
+> #
+> # Problem 1 of 1
+> #
+> 
+> #####################################################################
+> # Step 1. Generate synthetic dataset
+> 
+> # We want 25 cluster centers in a five-by-five grid with both X and Y
+> # taking on the values 1 through 5. Around each center, we will generate
+> # Gaussian distribution of random points, with a variety of standard deviations
+> 
+> ls()
+character(0)
+> setwd("/Users/dabercrombie/Documents/aberdave-repos/Machine-Learning/ml102/hw2")
+> 
+> # Step 1a - generate centers
+> # This handy function does what we in the database
+> # field might call a Cartesian product, i.e., all 
+> # combinations of the supplied vectors.
+> #
+> cluster.centers.actual.df <- expand.grid(
++   1:5,
++   1:5
++ )
+> # Interactive peek at these centers
+> #
+> plot(cluster.centers.actual.df, main="Actual centers")
+> 
+> 
+> # Step 1b Create a function that generates random points
+> # around a center cluster. 
+> #
+> point.generator.f <- function(
++   center.vector,
++   standard.deviation,
++   point.count
++ ) {
++   cbind(
++     rnorm(point.count, sd=standard.deviation) + center.vector[,1],
++     rnorm(point.count, sd=standard.deviation) + center.vector[,2]
++   )
++ }
+> 
+> # sanity check function using one center
+> cluster.centers.actual.df[22,]
+   Var1 Var2
+22    2    5
+> point.generator.f(
++   center.vector=cluster.centers.actual.df[22,], 
++   standard.deviation=0.2, 
++   point.count=10
++ )
+          [,1]     [,2]
+ [1,] 2.095837 5.258123
+ [2,] 1.930060 5.204462
+ [3,] 2.206234 4.995263
+ [4,] 2.023438 5.239151
+ [5,] 2.302429 4.702899
+ [6,] 2.266871 5.360171
+ [7,] 2.018662 4.921718
+ [8,] 2.331567 4.712531
+ [9,] 1.798326 4.995560
+[10,] 2.108880 4.549578
+> 
+> 
+> # Loop through set of cluster centers, appending
+> # each center's points to a data frame with rbind()
+> # (must first initialize data frame to be empty)
+> synthetic.points.df <- data.frame()
+> for( i in 1:nrow(cluster.centers.actual.df) ) {
++   synthetic.points.df <- rbind(
++     synthetic.points.df,
++     point.generator.f(
++       center.vector=cluster.centers.actual.df[i,],   # the i-th row
++       standard.deviation=0.2,                        # will vary later
++       point.count=100
++     )
++   )
++ }
+> 
+> # Sanity check generated points
+> #
+> dim(synthetic.points.df)
+[1] 2500    2
+> plot(synthetic.points.df, main="Standard deviation = 0.2")
+> 
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  0.243   0.015   0.254 
