@@ -171,14 +171,14 @@ km.sse.f(synthetic.points.0.2.sd.df, 20)
 #####################################################################
 # Step 4. Write single-arg functions to return SSE for a value of K
 #         One function for each sd dataframe: this allows the use
-#         of apply() to generate a plot of SSE function of only K
+#         of sapply() to generate a plot of SSE function of only K
 
 
 km.sse.0.2.sd.f <- function(k) {
   # returns tot.withinss for a
   # hardcoded data frame and an
   # single argument of K. For use
-  # with apply()
+  # with sapply()
   km.sse.f(
     df.arg=synthetic.points.0.2.sd.df, 
     centers.arg=k
