@@ -56,13 +56,33 @@ point.generator.f(
 )
 
 
+# The problem calls for exploring three satnard
+# deviations: sd = 0.1, sd = 0.2 and sd = 0.5.
+# So I generate three synthetic datasets, one for
+# each value of standard deviation. I copy code
+# three times, should prably be another function!
+
 # Loop through set of cluster centers, appending
 # each center's points to a data frame with rbind()
 # (must first initialize data frame to be empty)
-synthetic.points.df <- data.frame()
+
+# sd = 0.1
+synthetic.points.0.1.sd.df <- data.frame()
 for( i in 1:nrow(cluster.centers.actual.df) ) {
-  synthetic.points.df <- rbind(
-    synthetic.points.df,
+  synthetic.points.0.1.sd.df <- rbind(
+    synthetic.points.0.1.sd.df,
+    point.generator.f(
+      center.vector=cluster.centers.actual.df[i,],   # the i-th row
+      standard.deviation=0.1,                        # will vary later
+      point.count=100
+    )
+  )
+}
+# sd = 0.2 
+synthetic.points.0.2.sd.df <- data.frame()
+for( i in 1:nrow(cluster.centers.actual.df) ) {
+  synthetic.points.0.2.sd.df <- rbind(
+    synthetic.points.0.2.sd.df,
     point.generator.f(
       center.vector=cluster.centers.actual.df[i,],   # the i-th row
       standard.deviation=0.2,                        # will vary later
@@ -70,10 +90,87 @@ for( i in 1:nrow(cluster.centers.actual.df) ) {
     )
   )
 }
+# sd = 0.5
+synthetic.points.0.5.sd.df <- data.frame()
+for( i in 1:nrow(cluster.centers.actual.df) ) {
+  synthetic.points.0.5.sd.df <- rbind(
+    synthetic.points.0.5.sd.df,
+    point.generator.f(
+      center.vector=cluster.centers.actual.df[i,],   # the i-th row
+      standard.deviation=0.5,                        # varied from above
+      point.count=100
+    )
+  )
+}
+
 
 # Sanity check generated points
 #
-dim(synthetic.points.df)
-plot(synthetic.points.df, main="Standard deviation = 0.2")
+dim(synthetic.points.0.1.sd.df)
+dim(synthetic.points.0.2.sd.df)
+dim(synthetic.points.0.5.sd.df)
+
+plot(synthetic.points.0.1.sd.df, main="Standard deviation = 0.1")
+plot(synthetic.points.0.2.sd.df, main="Standard deviation = 0.2")
+plot(synthetic.points.0.5.sd.df, main="Standard deviation = 0.5")
+
+
+#####################################################################
+# Step 2. Sanity check use of kmeans()
+
+synthetic.points.0.2.sd.km <- kmeans(
+  x=synthetic.points.0.2.sd.df,
+  centers=25,
+  iter.max=20,
+  nstart=10
+)
+
+# Interactive look at return value structure
+#
+summary(synthetic.points.0.2.sd.km)
+str(synthetic.points.0.2.sd.km)
+plot(synthetic.points.0.2.sd.km$centers, main="synthetic.points.0.2.sd.km$centers, K=25")
+plot(synthetic.points.0.2.sd.km$cluster, main="plot(synthetic.points.0.2.sd.km$cluster)")
+
+
+#####################################################################
+# Step 3, Write a function to return SSE for a dataset and value of K
+
+km.sse.f <- function(
+  df.arg,
+  centers.arg
+) {
+  tmp.km <- kmeans(
+    x=df.arg,
+    centers=centers.arg,
+    iter.max=20,
+    nstart=10
+  )
+  # Pretty sure that I should return tot.withinss rather
+  # than totss. They have the same definition in the docs!
+  #
+  # "total within-cluster sum of squares" and
+  #
+  # yet thay have different values. It appears that
+  # 
+  #    totss = tot.withinss + betweenss
+  #
+  # and that totss does NOT change much with K.
+  # 
+  # The text calls for just "the SSE" on page 546
+  # and it does not seem as if between cluster errors
+  # are anywhere near as important as within cluster.
+  # So I conclude that we want to return tot.withinss
+  #
+  tmp.km$tot.withinss
+}
+
+# sanity check function
+km.sse.f(synthetic.points.0.2.sd.df, 20)
+
+#####################################################################
+# Step 4. Write single-arg functions to return SSE for a value of K
+#         One function for each sd dataframe: this allows the use
+#         of apply() to generate a plot of SSE function of only K
 
 
