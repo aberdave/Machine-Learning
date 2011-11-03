@@ -174,3 +174,18 @@ km.sse.f(synthetic.points.0.2.sd.df, 20)
 #         of apply() to generate a plot of SSE function of only K
 
 
+km.sse.0.2.sd.f <- function(k) {
+  # returns tot.withinss for a
+  # hardcoded data frame and an
+  # single argument of K. For use
+  # with apply()
+  km.sse.f(
+    df.arg=synthetic.points.0.2.sd.df, 
+    centers.arg=k
+  )
+}
+
+
+plot(sapply(1:30, km.sse.0.2.sd.f))
+
+
