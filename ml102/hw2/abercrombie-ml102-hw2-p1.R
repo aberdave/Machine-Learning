@@ -9,8 +9,21 @@
 # Problem 1 of 1
 #
 
+# Step 1. Generate synthetic datasets
+# Step 2. Sanity check use of kmeans()
+# Step 3, Write a function to return SSE for a dataset and value of K
+# Step 4. Write single-arg functions to return SSE for a value of K
+#         One function for each sd dataframe: this allows the use
+#         of sapply() to generate a plot of SSE function of only K
+# Step 5. Plot SSE as function of K, look for inflection point
+# Step 6. use AIC method to find optimal K
+
+# Short answer: Both methods did a good job at finding a good K
+# for the datasets that had real clusters (sd=0.1 or 0.2) but failed
+# for the essentially unclustered data. 
+
 #####################################################################
-# Step 1. Generate synthetic dataset
+# Step 1. Generate synthetic datasets
 
 # We want 25 cluster centers in a five-by-five grid with both X and Y
 # taking on the values 1 through 5. Around each center, we will generate
@@ -202,30 +215,37 @@ km.sse.0.5.sd.f <- function(k) {
 # Step 5. Plot SSE as function of K, look for inflection point
 
 
-# These all look about the same, but with different range of SSE
-# Inflection is not obvious, but perhaps around 5 or so?
+# This method does a great job of finding a good K, near 25 as expected,
+# for both the 0.1 and 0.2 standard deviation synthetic datasets. It fails
+# to find a minimum for the 0.5 standard deviation dataset, but those data
+# are not really clustered (just look at them!)
 #
+# I was initially confused since I made my plots start at K=1, which
+# exagerated the peak on the left, making it hard to see the curve minimums.
 
 plot(
-    sapply(1:30, km.sse.0.1.sd.f), 
-    main="SSE as function of K, sd = 0.1",
-    sub="look for inflection point",
-    xlab="k",
-    ylab="SSE"
+  data.frame(
+      k=10:50,
+      sse=sapply(10:50, km.sse.0.1.sd.f)
+  ), 
+  main="SSE as function of K, sd = 0.1",
+  sub="look for inflection point"
 )
 plot(
-    sapply(1:30, km.sse.0.2.sd.f), 
-    main="SSE as function of K, sd = 0.2",
-    sub="look for inflection point",
-    xlab="k",
-    ylab="SSE"
+  data.frame(
+      k=10:50,
+      sse=sapply(10:50, km.sse.0.2.sd.f)
+  ), 
+  main="SSE as function of K, sd = 0.2",
+  sub="look for inflection point"
 )
 plot(
-    sapply(1:30, km.sse.0.5.sd.f), 
-    main="SSE as function of K, sd = 0.5",
-    sub="look for inflection point",
-    xlab="k",
-    ylab="SSE"
+  data.frame(
+      k=10:50,
+      sse=sapply(10:50, km.sse.0.5.sd.f)
+  ), 
+  main="SSE as function of K, sd = 0.5",
+  sub="look for inflection point"
 )
 
 
@@ -239,11 +259,17 @@ plot(
 # Introduction to Information Retrieval, Cambridge University Press. 2008.
 # http://nlp.stanford.edu/IR-book/html/htmledition/cluster-cardinality-in-k-means-1.html
 
+# This method does a great job of finding a good K, near 25 as expected,
+# for both the 0.1 and 0.2 standard deviation synthetic datasets. It fails
+# to find a minimum for the 0.5 standard deviation dataset, but those data
+# are not really clustered (just look at them!)
+#
+# I was initially confused since I made my plots start at K=1, which
+# exagerated the peak on the left, making it hard to see the curve minimums.
 
-# I am not sure what to use for M
+M = 2 # the dimensionality of the dataset
 
-M = 50
-
+# Dataset 1: sd = 0.1
 km.aic.0.1.sd.f <- function(k) {
   # returns Equation 197 for a
   # hardcoded data frame and an
@@ -252,34 +278,39 @@ km.aic.0.1.sd.f <- function(k) {
   km.sse.0.1.sd.f(k) + (2 * M * k)
 }
 plot(
-    sapply(1:30, km.aic.0.1.sd.f), 
-    main=paste("Equation 197 as function of K, sd = 0.1, M = ", M),
-    sub="look for minimum",
-    xlab="k",
-    ylab="Eq. 197"
+  data.frame(
+    k=10:50,
+    eq.197=sapply(10:50, km.aic.0.1.sd.f)
+  ),
+  main=paste("Equation 197 as function of K, sd = 0.1, M = ", M),
+  sub="look for minimum"
 )
 
 
+# Dataset 2: sd = 0.2
 km.aic.0.2.sd.f <- function(k) {
   km.sse.0.2.sd.f(k) + (2 * M * k)
 }
 plot(
-    sapply(1:30, km.aic.0.2.sd.f), 
-    main=paste("Equation 197 as function of K, sd = 0.2, M = ", M),
-    sub="look for minimum",
-    xlab="k",
-    ylab="Eq. 197"
+  data.frame(
+    k=10:50,
+    eq.197=sapply(10:50, km.aic.0.2.sd.f)
+  ),
+  main=paste("Equation 197 as function of K, sd = 0.2, M = ", M),
+  sub="look for minimum"
 )
 
 
+# Dataset 3: sd = 0.5
 km.aic.0.5.sd.f <- function(k) {
   km.sse.0.5.sd.f(k) + (2 * M * k)
 }
 plot(
-    sapply(1:30, km.aic.0.5.sd.f), 
-    main=paste("Equation 197 as function of K, sd = 0.5, M = ", M),
-    sub="look for minimum",
-    xlab="k",
-    ylab="Eq. 197"
+  data.frame(
+    k=10:50,
+    eq.197=sapply(10:50, km.aic.0.5.sd.f)
+  ),
+  main=paste("Equation 197 as function of K, sd = 0.5, M = ", M),
+  sub="look for minimum"
 )
 
