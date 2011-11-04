@@ -78,25 +78,45 @@ character(0)
 +   point.count=10
 + )
           [,1]     [,2]
- [1,] 2.095837 5.258123
- [2,] 1.930060 5.204462
- [3,] 2.206234 4.995263
- [4,] 2.023438 5.239151
- [5,] 2.302429 4.702899
- [6,] 2.266871 5.360171
- [7,] 2.018662 4.921718
- [8,] 2.331567 4.712531
- [9,] 1.798326 4.995560
-[10,] 2.108880 4.549578
+ [1,] 2.098857 4.950606
+ [2,] 1.945813 4.989750
+ [3,] 2.208317 5.110272
+ [4,] 2.284758 4.893691
+ [5,] 2.113752 4.571923
+ [6,] 1.626429 4.844606
+ [7,] 2.038117 5.130393
+ [8,] 2.151285 5.153836
+ [9,] 2.039156 5.178738
+[10,] 1.831892 4.871490
 > 
+> 
+> # The problem calls for exploring three satnard
+> # deviations: sd = 0.1, sd = 0.2 and sd = 0.5.
+> # So I generate three synthetic datasets, one for
+> # each value of standard deviation. I copy code
+> # three times, should prably be another function!
 > 
 > # Loop through set of cluster centers, appending
 > # each center's points to a data frame with rbind()
 > # (must first initialize data frame to be empty)
-> synthetic.points.df <- data.frame()
+> 
+> # sd = 0.1
+> synthetic.points.0.1.sd.df <- data.frame()
 > for( i in 1:nrow(cluster.centers.actual.df) ) {
-+   synthetic.points.df <- rbind(
-+     synthetic.points.df,
++   synthetic.points.0.1.sd.df <- rbind(
++     synthetic.points.0.1.sd.df,
++     point.generator.f(
++       center.vector=cluster.centers.actual.df[i,],   # the i-th row
++       standard.deviation=0.1,                        # will vary later
++       point.count=100
++     )
++   )
++ }
+> # sd = 0.2 
+> synthetic.points.0.2.sd.df <- data.frame()
+> for( i in 1:nrow(cluster.centers.actual.df) ) {
++   synthetic.points.0.2.sd.df <- rbind(
++     synthetic.points.0.2.sd.df,
 +     point.generator.f(
 +       center.vector=cluster.centers.actual.df[i,],   # the i-th row
 +       standard.deviation=0.2,                        # will vary later
@@ -104,15 +124,225 @@ character(0)
 +     )
 +   )
 + }
+> # sd = 0.5
+> synthetic.points.0.5.sd.df <- data.frame()
+> for( i in 1:nrow(cluster.centers.actual.df) ) {
++   synthetic.points.0.5.sd.df <- rbind(
++     synthetic.points.0.5.sd.df,
++     point.generator.f(
++       center.vector=cluster.centers.actual.df[i,],   # the i-th row
++       standard.deviation=0.5,                        # varied from above
++       point.count=100
++     )
++   )
++ }
+> 
 > 
 > # Sanity check generated points
 > #
-> dim(synthetic.points.df)
+> dim(synthetic.points.0.1.sd.df)
 [1] 2500    2
-> plot(synthetic.points.df, main="Standard deviation = 0.2")
+> dim(synthetic.points.0.2.sd.df)
+[1] 2500    2
+> dim(synthetic.points.0.5.sd.df)
+[1] 2500    2
 > 
+> plot(synthetic.points.0.1.sd.df, main="Standard deviation = 0.1")
+> plot(synthetic.points.0.2.sd.df, main="Standard deviation = 0.2")
+> plot(synthetic.points.0.5.sd.df, main="Standard deviation = 0.5")
+> 
+> 
+> #####################################################################
+> # Step 2. Sanity check use of kmeans()
+> 
+> synthetic.points.0.2.sd.km <- kmeans(
++   x=synthetic.points.0.2.sd.df,
++   centers=25,
++   iter.max=20,
++   nstart=10
++ )
+> 
+> # Interactive look at return value structure
+> #
+> summary(synthetic.points.0.2.sd.km)
+             Length Class  Mode   
+cluster      2500   -none- numeric
+centers        50   -none- numeric
+totss           1   -none- numeric
+withinss       25   -none- numeric
+tot.withinss    1   -none- numeric
+betweenss       1   -none- numeric
+size           25   -none- numeric
+> str(synthetic.points.0.2.sd.km)
+List of 7
+ $ cluster     : Named int [1:2500] 7 7 7 7 7 7 7 7 7 7 ...
+  ..- attr(*, "names")= chr [1:2500] "1" "2" "3" "4" ...
+ $ centers     : num [1:25, 1:2] 5 0.989 3.998 4.023 5.049 ...
+  ..- attr(*, "dimnames")=List of 2
+  .. ..$ : chr [1:25] "1" "2" "3" "4" ...
+  .. ..$ : chr [1:2] "V1" "V2"
+ $ totss       : num 10266
+ $ withinss    : num [1:25] 8.08 7.64 8.23 8.38 7.33 ...
+ $ tot.withinss: num 228
+ $ betweenss   : num 10038
+ $ size        : int [1:25] 100 99 105 101 98 97 99 103 101 105 ...
+ - attr(*, "class")= chr "kmeans"
+> plot(synthetic.points.0.2.sd.km$centers, main="synthetic.points.0.2.sd.km$centers, K=25")
+> plot(synthetic.points.0.2.sd.km$cluster, main="plot(synthetic.points.0.2.sd.km$cluster)")
+> 
+> 
+> #####################################################################
+> # Step 3, Write a function to return SSE for a dataset and value of K
+> 
+> km.sse.f <- function(
++   df.arg,
++   centers.arg
++ ) {
++   tmp.km <- kmeans(
++     x=df.arg,
++     centers=centers.arg,
++     iter.max=20,
++     nstart=10
++   )
++   # Pretty sure that I should return tot.withinss rather
++   # than totss. They have the same definition in the docs!
++   #
++   # "total within-cluster sum of squares" and
++   #
++   # yet thay have different values. It appears that
++   # 
++   #    totss = tot.withinss + betweenss
++   #
++   # and that totss does NOT change much with K.
++   # 
++   # The text calls for just "the SSE" on page 546
++   # and it does not seem as if between cluster errors
++   # are anywhere near as important as within cluster.
++   # So I conclude that we want to return tot.withinss
++   #
++   tmp.km$tot.withinss
++ }
+> 
+> # sanity check function
+> km.sse.f(synthetic.points.0.2.sd.df, 20)
+[1] 396.3546
+> 
+> #####################################################################
+> # Step 4. Write single-arg functions to return SSE for a value of K
+> #         One function for each sd dataframe: this allows the use
+> #         of sapply() to generate a plot of SSE function of only K
+> 
+> 
+> km.sse.0.1.sd.f <- function(k) {
++   # returns tot.withinss for a
++   # hardcoded data frame and an
++   # single argument of K. For use
++   # with sapply()
++   km.sse.f(
++     df.arg=synthetic.points.0.1.sd.df, 
++     centers.arg=k
++   )
++ }
+> km.sse.0.2.sd.f <- function(k) {
++   km.sse.f(
++     df.arg=synthetic.points.0.2.sd.df, 
++     centers.arg=k
++   )
++ }
+> km.sse.0.5.sd.f <- function(k) {
++   km.sse.f(
++     df.arg=synthetic.points.0.5.sd.df, 
++     centers.arg=k
++   )
++ }
+> 
+> 
+> #####################################################################
+> # Step 5. Plot SSE as function of K, look for inflection point
+> 
+> 
+> # These all look about the same, but with different range of SSE
+> # Inflection is not obvious, but perhaps around 5 or so?
+> #
+> 
+> plot(
++     sapply(1:30, km.sse.0.1.sd.f), 
++     main="SSE as function of K, sd = 0.1",
++     sub="look for inflection point",
++     xlab="k",
++     ylab="SSE"
++ )
+> plot(
++     sapply(1:30, km.sse.0.2.sd.f), 
++     main="SSE as function of K, sd = 0.2",
++     sub="look for inflection point",
++     xlab="k",
++     ylab="SSE"
++ )
+> plot(
++     sapply(1:30, km.sse.0.5.sd.f), 
++     main="SSE as function of K, sd = 0.5",
++     sub="look for inflection point",
++     xlab="k",
++     ylab="SSE"
++ )
+> 
+> 
+> #####################################################################
+> # Step 6. use AIC method to find optimal K
+> 
+> # Akaike Information Criterion or AIC
+> # Equation 197
+> # Cluster cardinality in K-means
+> # Christopher D. Manning
+> # Introduction to Information Retrieval, Cambridge University Press. 2008.
+> # http://nlp.stanford.edu/IR-book/html/htmledition/cluster-cardinality-in-k-means-1.html
+> 
+> 
+> # I am not sure what to use for M
+> 
+> M = 50
+> 
+> km.aic.0.1.sd.f <- function(k) {
++   # returns Equation 197 for a
++   # hardcoded data frame and an
++   # single argument of K. For use
++   # with sapply()
++   km.sse.0.1.sd.f(k) + (2 * M * k)
++ }
+> plot(
++     sapply(1:30, km.aic.0.1.sd.f), 
++     main=paste("Equation 197 as function of K, sd = 0.1, M = ", M),
++     sub="look for minimum",
++     xlab="k",
++     ylab="Eq. 197"
++ )
+> 
+> 
+> km.aic.0.2.sd.f <- function(k) {
++   km.sse.0.2.sd.f(k) + (2 * M * k)
++ }
+> plot(
++     sapply(1:30, km.aic.0.2.sd.f), 
++     main=paste("Equation 197 as function of K, sd = 0.2, M = ", M),
++     sub="look for minimum",
++     xlab="k",
++     ylab="Eq. 197"
++ )
+> 
+> 
+> km.aic.0.5.sd.f <- function(k) {
++   km.sse.0.5.sd.f(k) + (2 * M * k)
++ }
+> plot(
++     sapply(1:30, km.aic.0.5.sd.f), 
++     main=paste("Equation 197 as function of K, sd = 0.5, M = ", M),
++     sub="look for minimum",
++     xlab="k",
++     ylab="Eq. 197"
++ )
 > 
 > 
 > proc.time()
    user  system elapsed 
-  0.243   0.015   0.254 
+ 11.044   0.027  11.180 

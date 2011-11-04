@@ -174,18 +174,112 @@ km.sse.f(synthetic.points.0.2.sd.df, 20)
 #         of sapply() to generate a plot of SSE function of only K
 
 
-km.sse.0.2.sd.f <- function(k) {
+km.sse.0.1.sd.f <- function(k) {
   # returns tot.withinss for a
   # hardcoded data frame and an
   # single argument of K. For use
   # with sapply()
   km.sse.f(
+    df.arg=synthetic.points.0.1.sd.df, 
+    centers.arg=k
+  )
+}
+km.sse.0.2.sd.f <- function(k) {
+  km.sse.f(
     df.arg=synthetic.points.0.2.sd.df, 
+    centers.arg=k
+  )
+}
+km.sse.0.5.sd.f <- function(k) {
+  km.sse.f(
+    df.arg=synthetic.points.0.5.sd.df, 
     centers.arg=k
   )
 }
 
 
-plot(sapply(1:30, km.sse.0.2.sd.f))
+#####################################################################
+# Step 5. Plot SSE as function of K, look for inflection point
 
+
+# These all look about the same, but with different range of SSE
+# Inflection is not obvious, but perhaps around 5 or so?
+#
+
+plot(
+    sapply(1:30, km.sse.0.1.sd.f), 
+    main="SSE as function of K, sd = 0.1",
+    sub="look for inflection point",
+    xlab="k",
+    ylab="SSE"
+)
+plot(
+    sapply(1:30, km.sse.0.2.sd.f), 
+    main="SSE as function of K, sd = 0.2",
+    sub="look for inflection point",
+    xlab="k",
+    ylab="SSE"
+)
+plot(
+    sapply(1:30, km.sse.0.5.sd.f), 
+    main="SSE as function of K, sd = 0.5",
+    sub="look for inflection point",
+    xlab="k",
+    ylab="SSE"
+)
+
+
+#####################################################################
+# Step 6. use AIC method to find optimal K
+
+# Akaike Information Criterion or AIC
+# Equation 197
+# Cluster cardinality in K-means
+# Christopher D. Manning
+# Introduction to Information Retrieval, Cambridge University Press. 2008.
+# http://nlp.stanford.edu/IR-book/html/htmledition/cluster-cardinality-in-k-means-1.html
+
+
+# I am not sure what to use for M
+
+M = 50
+
+km.aic.0.1.sd.f <- function(k) {
+  # returns Equation 197 for a
+  # hardcoded data frame and an
+  # single argument of K. For use
+  # with sapply()
+  km.sse.0.1.sd.f(k) + (2 * M * k)
+}
+plot(
+    sapply(1:30, km.aic.0.1.sd.f), 
+    main=paste("Equation 197 as function of K, sd = 0.1, M = ", M),
+    sub="look for minimum",
+    xlab="k",
+    ylab="Eq. 197"
+)
+
+
+km.aic.0.2.sd.f <- function(k) {
+  km.sse.0.2.sd.f(k) + (2 * M * k)
+}
+plot(
+    sapply(1:30, km.aic.0.2.sd.f), 
+    main=paste("Equation 197 as function of K, sd = 0.2, M = ", M),
+    sub="look for minimum",
+    xlab="k",
+    ylab="Eq. 197"
+)
+
+
+km.aic.0.5.sd.f <- function(k) {
+  km.sse.0.5.sd.f(k) + (2 * M * k)
+}
+plot(
+    sapply(1:30, km.aic.0.5.sd.f), 
+    main=paste("Equation 197 as function of K, sd = 0.5, M = ", M),
+    sub="look for minimum",
+    xlab="k",
+    ylab="Eq. 197"
+)
 
