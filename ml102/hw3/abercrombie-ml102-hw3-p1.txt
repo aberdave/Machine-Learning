@@ -1,0 +1,172 @@
+
+R version 2.13.2 (2011-09-30)
+Copyright (C) 2011 The R Foundation for Statistical Computing
+ISBN 3-900051-07-0
+Platform: x86_64-apple-darwin9.8.0/x86_64 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> # Machine Learning 102 - Unsupervised - Hacker Dojo
+> # http://machinelearning102.pbworks.com/w/page/32890352/FrontPage
+> #
+> # Homework #3, Gaussian mixtue model, EM algorithm
+> # Dave Abercrombie, Noveember 1 2011
+> #
+> # http://machinelearning102.pbworks.com/w/file/fetch/47711752/Homework3.txt
+> #
+> # Problem 1 of 1
+> #
+> 
+> # ######################################################################
+> # Step 1. Generate synthetic datasets
+> 
+> 
+> # Step 1a Create a function that generates random points
+> # around a center cluster. 
+> #
+> point.generator.f <- function(
++   label.integer,
++   center.vector,
++   sd.vector,
++   point.count
++ ) {
++   data.frame(
++     label=label.integer,
++     x=rnorm(point.count, sd=sd.vector[1]) + center.vector[1],
++     y=rnorm(point.count, sd=sd.vector[2]) + center.vector[2]
++   )
++ }
+> 
+> # Step 1b: generate several clusters, resembling Tan's Basic Cluster Analysis 2004, slide 81'
+> red.df   <- point.generator.f(label.integer=1,   center.vector=c( 4, 0), sd.vector=c(2, 1),      point.count=500)
+> cyan.df  <- point.generator.f(label.integer=2,  center.vector=c(-1, 0), sd.vector=c(0.25, 0.5), point.count=100)
+> green.df <- point.generator.f(label.integer=3, center.vector=c(-4, 0), sd.vector=c(1, 2),      point.count=300)
+> black.df <- point.generator.f(label.integer=4, center.vector=c( 5, 2), sd.vector=c(0.5, 0.25), point.count=100)
+> gold.df  <- point.generator.f(label.integer=5,  center.vector=c( 6, 1), sd.vector=c(0.5, 0.25), point.count=100)
+> blue.df  <- point.generator.f(label.integer=6,  center.vector=c( 5,-1), sd.vector=c(0.5, 0.25), point.count=100)
+> 
+> 
+> # Step 1c: set plot limits and combine plots with par()
+> xlim.v <- c(-10,10)
+> ylim.v <- c(-5,5)
+> 
+> plot(   red.df[,-1], col="red",   xlim=xlim.v, ylim=ylim.v); par(new=T)
+> plot(  cyan.df[,-1], col="cyan",  xlim=xlim.v, ylim=ylim.v); par(new=T)
+> plot( green.df[,-1], col="green", xlim=xlim.v, ylim=ylim.v); par(new=T)
+> plot( black.df[,-1], col="black", xlim=xlim.v, ylim=ylim.v); par(new=T)
+> plot(  gold.df[,-1], col="gold",  xlim=xlim.v, ylim=ylim.v); par(new=T)
+> plot(  blue.df[,-1], col="blue",  xlim=xlim.v, ylim=ylim.v); par(new=F)
+> 
+> # Step 1d: combine into one data frame
+> syndata.labeled.df <- rbind(
++   red.df,
++   cyan.df,
++   green.df,
++   black.df,
++   gold.df,
++   blue.df
++ )
+> 
+> str(syndata.labeled.df)
+'data.frame':	1200 obs. of  3 variables:
+ $ label: num  1 1 1 1 1 1 1 1 1 1 ...
+ $ x    : num  2.18 3.35 1.64 8.11 7.37 ...
+ $ y    : num  0.0453 -1.0931 -1.6407 0.6223 0.7311 ...
+> 
+> # ######################################################################
+> # Step 2. Do Mclust
+> 
+> require(mclust)
+Loading required package: mclust
+
+by using mclust, invoked on its own or through another package,
+you accept the license agreement in the mclust LICENSE file
+and at http://www.stat.washington.edu/mclust/license.txt
+
+> 
+> # ignore column 1 containing labels
+> syndata.mclust <- Mclust(
++   data=syndata.labeled.df[,-1]
++ )
+> 
+> plot(
++   x=syndata.mclust, 
++   data=syndata.labeled.df[,-1],
++   what="BIC"
++ )
+> 
+> 
+> plot(
++   x=syndata.mclust, 
++   data=syndata.labeled.df[,-1],
++   what="classification"
++ )
+> 
+> # examine return value
+> str(syndata.mclust)
+List of 11
+ $ modelName     : chr "VVI"
+ $ n             : int 1200
+ $ d             : int 2
+ $ G             : int 7
+ $ BIC           : num [1:9, 1:10] -12568 -10310 -10238 -10240 -10261 ...
+  ..- attr(*, "dimnames")=List of 2
+  .. ..$ : chr [1:9] "1" "2" "3" "4" ...
+  .. ..$ : chr [1:10] "EII" "VII" "EEI" "VEI" ...
+  ..- attr(*, "G")= num [1:9] 1 2 3 4 5 6 7 8 9
+  ..- attr(*, "modelNames")= chr [1:10] "EII" "VII" "EEI" "VEI" ...
+  ..- attr(*, "oneD")= logi FALSE
+ $ bic           : num -9706
+ $ loglik        : num -4732
+ $ parameters    :List of 4
+  ..$ Vinv    : NULL
+  ..$ pro     : num [1:7] 0.4073 0.0862 0.091 0.0817 0.0839 ...
+  ..$ mean    : num [1:2, 1:7] 3.9784 0.0759 4.9416 -0.9561 5.9841 ...
+  .. ..- attr(*, "dimnames")=List of 2
+  .. .. ..$ : chr [1:2] "x" "y"
+  .. .. ..$ : NULL
+  ..$ variance:List of 6
+  .. ..$ modelName: chr "VVI"
+  .. ..$ d        : int 2
+  .. ..$ G        : int 7
+  .. ..$ sigma    : num [1:2, 1:2, 1:7] 4.102 0 0 1.131 0.266 ...
+  .. .. ..- attr(*, "dimnames")=List of 3
+  .. .. .. ..$ : chr [1:2] "x" "y"
+  .. .. .. ..$ : chr [1:2] "x" "y"
+  .. .. .. ..$ : NULL
+  .. ..$ scale    : num [1:7] 2.154 0.121 0.134 0.129 0.13 ...
+  .. ..$ shape    : num [1:2, 1:7] 1.904 0.525 2.206 0.453 2.345 ...
+  .. .. ..- attr(*, "dimnames")=List of 2
+  .. .. .. ..$ : NULL
+  .. .. .. ..$ : chr [1:7] "1" "2" "3" "4" ...
+ $ classification: Named num [1:1200] 1 1 1 1 1 1 1 1 4 1 ...
+  ..- attr(*, "names")= chr [1:1200] "1" "2" "3" "4" ...
+ $ uncertainty   : Named num [1:1200] 2.21e-07 4.84e-02 2.57e-06 7.16e-03 3.06e-01 ...
+  ..- attr(*, "names")= chr [1:1200] "1" "2" "3" "4" ...
+ $ z             : num [1:1200, 1:7] 1 0.952 1 0.993 0.694 ...
+  ..- attr(*, "dimnames")=List of 2
+  .. ..$ : chr [1:1200] "1" "2" "3" "4" ...
+  .. ..$ : NULL
+ - attr(*, "class")= chr "Mclust"
+> 
+> # 
+> plot(syndata.labeled.df[,1], main="Synthetic data")
+> plot(syndata.mclust$classification, main="Mclust classification")
+> 
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  3.286   0.034   3.315 
