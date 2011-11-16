@@ -1,0 +1,5 @@
+1. Generate a dataset with a small percentage of anomalies.
+
+2. Find the anomalies and discuss the results and process.
+
+

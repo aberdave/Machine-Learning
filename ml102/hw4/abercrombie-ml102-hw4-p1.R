@@ -2,21 +2,93 @@
 # http://machinelearning102.pbworks.com/w/page/32890352/FrontPage
 #
 # Homework #4, Detecting Anomalies
-# Dave Abercrombie, October 24 2011
+# Dave Abercrombie, November 16 2011
 #
+# Part 1: generate data with anomalies.
+#
+# 1. Data entry of anomalous data and dimensions
+# 2. Check data entry, transform it, and derive convenient variables
+# 3. Define function to generate a row of typical, non-anomalous data
+# 4. Create data frame of typical data, with slots to hold anomalies
+# 5. Write the anomaly data sets into the data frame.
+# 6. Export to CSV
 
+#######################################################
+# 1. Data entry of anomalous data and dimensions
 
-normal.point.count <- 80
-anomoly.1.point.count <- 10
-anomoly.2.point.count <- 10
+ls()
+setwd("/Users/dabercrombie/Documents/aberdave-repos/Machine-Learning/ml102/hw4")
+
+normal.point.count <- 980
 total.column.count <- 11
-#
-total.point.count <- normal.point.count + anomoly.1.point.count + anomoly.2.point.count
 
-# Display and check the fraction of data that are anomolous, 
-# looking for about 1%
-anomoly.fraction <- (anomoly.1.point.count + anomoly.2.point.count)/total.point.count
-anomoly.fraction
+# Hardcode some anomalous data. Here with low
+# and constant p1 through p10, but with very
+# high r1
+#
+# See R Cookbook recipe "5.14 Initializing a Matrix"
+# for details about this technique
+#
+anomaly.1.v <- c(
+  10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 200,
+  10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 300,
+  10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 100,
+  10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 200,
+  10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 300,
+  20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 200,
+  20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 300,
+  20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 300,
+  20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 100,
+  20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 300
+)
+
+anomaly.2.v <- c(
+   5,  5, 10, 10, 20, 40, 80,  160, 320, 640, 100,
+   5,  5, 10, 20, 30, 50, 90,  170, 330, 650,  90,
+   5, 10, 20, 30, 40, 60, 100, 180, 340, 660,  80,
+  10, 20, 30, 40, 50, 70, 110, 190, 350, 670,  70,
+  20, 30, 40, 50, 60, 80, 120, 200, 360, 680,  60,
+   5,  5, 10, 10, 20, 40, 80,  160, 320, 640, 100,
+   5,  5, 10, 20, 30, 50, 90,  170, 330, 650,  90,
+   5, 10, 20, 30, 40, 60, 100, 180, 340, 660,  80,
+  10, 20, 30, 40, 50, 70, 110, 190, 350, 670,  70,
+  20, 30, 40, 50, 60, 80, 120, 200, 360, 680,  60
+)
+
+####################################################################
+# 2. Check data entry, transform it, and derive convenient variables
+
+
+# count the rows of the anomaly data sets
+anomaly.1.point.count <- length(anomaly.1.v) / total.column.count
+anomaly.2.point.count <- length(anomaly.2.v) / total.column.count
+
+# convert to matrices to help with later assignment to data frame
+anomaly.1.m <- matrix(
+  data=anomaly.1.v,
+  nrow=anomaly.1.point.count,
+  ncol=total.column.count,
+  byrow=TRUE
+)
+anomaly.2.m <- matrix(
+  data=anomaly.2.v,
+  nrow=anomaly.2.point.count,
+  ncol=total.column.count,
+  byrow=TRUE
+)
+
+#
+
+# Display and check the total count and fraction of data that are anomolous, 
+# looking for about 1% ????
+total.point.count <- normal.point.count + anomaly.1.point.count + anomaly.2.point.count
+total.point.count
+anomaly.fraction <- (anomaly.1.point.count + anomaly.2.point.count)/total.point.count
+anomaly.fraction
+
+
+####################################################################
+# 3. Define function to generate a row of typical, non-anomalous data
 
 row.generator.f <- function(rnorm.mean.arg) {
 
@@ -63,6 +135,8 @@ row.generator.f <- function(rnorm.mean.arg) {
   x
 }
 
+####################################################################
+# 4. Create data frame of typical data, with slots to hold anomalies
 
 # pre-allocate memory to avoid costs
 # of row-by-row growth of data frame.
@@ -105,52 +179,27 @@ for (i in 1:normal.point.count) {
 }
 
 
-# Hardcode some anomalous data. Here with low
-# and constant p1 through p10, but with very
-# high r1
-#
-# See R Cookbook recipe "5.14 Initializing a Matrix"
-# for details about this technique
-#
-anomaly.1.v <- c(
-  10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 200,
-  10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 300,
-  10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 100,
-  10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 200,
-  10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 300,
-  20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 200,
-  20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 300,
-  20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 300,
-  20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 100,
-  20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 300
-)
-anomaly.1.m <- matrix(
-  data=anomaly.1.v,
-  nrow=10,
-  ncol=11,
-  byrow=TRUE
-)
+####################################################################
+# 5. Write the anomaly data sets into the data frame.
 
-
-# Check dimensions of anomaly.1.m
-# Does R have an "asert()"
-#
-if (nrow(anomaly.1.m) != anomoly.1.point.count) {
-  print("Error: anomoly.1.point.count is wrong")
-}
-if(ncol(anomaly.1.m) != total.column.count) {
-  print("Error: anomoly.1 column count is wrong")
-}
-
-
-
-# Write the anomoly data set 1 into the data frame.
 # With R's indexing starting at 1, the "start" here
-# means the last row before the start of the anomoly
-#
-anomoly.1.start <- normal.point.count
-for (i in 1:anomoly.1.point.count) {
-  synthetic.data[i+anomoly.1.start,] <- anomaly.1.m[i,]
+# means the last row before the start of the anomaly
+
+# anomaly 1 is right after typical data
+anomaly.1.start <- normal.point.count
+for (i in 1:anomaly.1.point.count) {
+  synthetic.data[i+anomaly.1.start,] <- anomaly.1.m[i,]
+}
+anomaly.2.start <- normal.point.count + anomaly.1.point.count
+for (i in 1:anomaly.2.point.count) {
+  synthetic.data[i+anomaly.2.start,] <- anomaly.2.m[i,]
 }
 
-synthetic.data
+####################################################################
+# 6. Export to CSV
+
+write.csv(
+    x=synthetic.data,
+    row.names=FALSE,
+    file="synthetic.data.csv"
+)
